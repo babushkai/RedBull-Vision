@@ -24,9 +24,19 @@ DVC is used to collect redbull dataset
 (https://dvc.org/doc/start/data-and-model-access)
 ```shell
 # From source repository
-dvc remote add -d drive gdrive://
+pip install dvc
+dvc init
+dvc status
+git commit -m "Initialize DVC"
+
+dvc add redbull
+git add redbull.dvc .gitignore
+git commit -m "Add raw data"
+
+dvc remote add -d drive gdrive://1J8A8XaIzrUp87_OAalmlqYD1S8uXpU5t
 pip install 'dvc[gdrive]'
-dvc push
+dvc push # varidation follows step here
+
 git add .dvc/config
 git commit -m "Configure remote storage"
 
