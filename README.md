@@ -24,9 +24,19 @@ DVC is used to collect redbull dataset
 (https://dvc.org/doc/start/data-and-model-access)
 ```shell
 # From source repository
-dvc remote add -d drive gdrive://
+pip install dvc
+dvc init
+dvc status
+git commit -m "Initialize DVC"
+
+dvc add redbull
+git add redbull.dvc .gitignore
+git commit -m "Add raw data"
+
+dvc remote add -d drive gdrive://1J8A8XaIzrUp87_OAalmlqYD1S8uXpU5t
 pip install 'dvc[gdrive]'
-dvc push
+dvc push # varidation follows step here
+
 git add .dvc/config
 git commit -m "Configure remote storage"
 
@@ -35,13 +45,15 @@ git clone
 dvc remote list
 dvc get https://github.com/kwdaisuke/test \
 > redbull
+
+gsutil cp redbull gs://source_bucket/redbull
 ```
 
 ```python
 from google.cloud import storage
 
 client = storage.Client()
-bucket =  # set bucket name
+bucket =  # set source_bucket name here
 
 df = pd.DataFrame({"path": [file.name for file in client.list_blobs(bucket)]}) # loop over filenames
 df["type"] = df.path.apply(lambda df: df.split("/")[-2]) # get folder name ex: sugar_free, normal
