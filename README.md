@@ -18,6 +18,25 @@ The images are collected via Internet as well as myself.
 
 ## Overview
 
+### Training Dataset
+DVC is used to collect redbull dataset 
+
+(https://dvc.org/doc/start/data-and-model-access)
+```shell
+# From source repository
+dvc remote add -d drive gdrive://
+pip install 'dvc[gdrive]'
+dvc push
+git add .dvc/config
+git commit -m "Configure remote storage"
+
+# From destination repository
+git clone 
+dvc remote list
+dvc get https://github.com/kwdaisuke/test \
+> redbull
+```
+
 ```python
 from google.cloud import storage
 
@@ -32,7 +51,7 @@ fullpath = "gs://"+bucket
 !gsutil cp schema.csv fullpath
 ```
 
-### Training Dataset
+
 ![](image/dataset.png)
 
 ### Model Performance
