@@ -1,27 +1,32 @@
 # RedBull Vision
 
+A comprehensive end-to-end machine learning system for RedBull can classification, leveraging Google Cloud Platform and Vertex AI.
+
 ## Background
 
-As my previous experience as Computer Vision Engineer and the current experience as Cloud Engineer motivates me to demostrate End-to-end Machine Learning System harnessed by Google Cloud Platform 
+This project demonstrates an end-to-end machine learning system that combines my experience as a Computer Vision Engineer with current Cloud Engineering expertise. The system is built on Google Cloud Platform and showcases various ML pipeline patterns.
 
 ## Methodology
-The images are collected via Internet as well as myself.
-`iphone's burst mode` is used collect more than 100 images for each type of RedBull
 
-## Setup
+- **Data Collection**: Images collected from the internet and personal photography
+- **Data Augmentation**: iPhone's burst mode used to collect 100+ images for each RedBull type
+- **Classification**: Binary classification between regular and sugar-free RedBull variants
 
-- Algorithm: InceptionResNetV2(Pretrained on ImageNet)
-- Orchestration: Kubeflow
-- Platform: GCP Vertex AI 
-- Pipeline type: Custom Training(If you choose autoML, refer to [autoML notebook](https://github.com/kwdaisuke/MLOps/blob/main/autoML_pipeline.ipynb))
+## Technical Stack
 
+- **Algorithm**: InceptionResNetV2 (pre-trained on ImageNet)
+- **Orchestration**: Kubeflow Pipelines
+- **Platform**: Google Cloud Platform (Vertex AI)
+- **Pipeline Types**: 
+  - Custom Training
+  - AutoML (see [AutoML notebook](https://github.com/kwdaisuke/MLOps/blob/main/autoML_pipeline.ipynb))
 
-## Overview
+## Dataset Management
 
-### Training Dataset
-DVC is used to collect redbull dataset 
+### DVC Setup
 
-(https://dvc.org/doc/start/data-and-model-access)
+This project uses DVC (Data Version Control) for dataset management. Reference: [DVC Documentation](https://dvc.org/doc/start/data-and-model-access)
+
 ```shell
 # From source repository
 pip install dvc
@@ -35,81 +40,78 @@ git commit -m "Add raw data"
 
 dvc remote add -d drive gdrive://1J8A8XaIzrUp87_OAalmlqYD1S8uXpU5t
 pip install 'dvc[gdrive]'
-dvc push # varidation follows step here
+dvc push
 
 git add .dvc/config
 git commit -m "Configure remote storage"
 
 # From destination repository
-git clone 
+git clone <repository-url>
 dvc remote list
-dvc get https://github.com/kwdaisuke/test \
-> redbull
+dvc get https://github.com/kwdaisuke/test redbull
 
 gsutil cp redbull gs://source_bucket/redbull
 ```
 
+### Data Processing
+
 ```python
 from google.cloud import storage
+import pandas as pd
 
 client = storage.Client()
-bucket =  # set source_bucket name here
+bucket = "your-source-bucket-name"  # Set source bucket name here
 
-df = pd.DataFrame({"path": [file.name for file in client.list_blobs(bucket)]}) # loop over filenames
-df["type"] = df.path.apply(lambda df: df.split("/")[-2]) # get folder name ex: sugar_free, normal
-df.to_csv("schema.csv", index = False) # export to csv
+# Create dataset schema
+df = pd.DataFrame({"path": [file.name for file in client.list_blobs(bucket)]})
+df["type"] = df.path.apply(lambda x: x.split("/")[-2])  # Extract folder name (e.g., sugar_free, normal)
+df.to_csv("schema.csv", index=False)
 
-fullpath = "gs://"+bucket
-!gsutil cp schema.csv fullpath
+# Upload schema to GCS
+fullpath = f"gs://{bucket}/schema.csv"
+!gsutil cp schema.csv {fullpath}
 ```
 
+### Dataset Visualization
 
-![](image/dataset.png)
+![Dataset Overview](image/dataset.png)
 
-### Model Performance
-AutoML is used in this demonstration. \
-You can also configure the custom training
-The accuracy is 100 % for the testing
-![](image/performance.png)
+## Model Performance
 
-### Inference 
-This model predict the image as sugar free Red Bull with 89.9% of probability 
-![](image/prediction.png)
+- **AutoML**: Used for this demonstration (custom training also available)
+- **Test Accuracy**: 100% on test dataset
 
+![Performance Metrics](image/performance.png)
 
-## Design Pattern
+## Inference
 
-Pattern1: End-to-end notebook \
-[Redbull Classification Pipeline](https://github.com/kwdaisuke/MLOps/blob/main/transfer_learning_custom_pipeline.ipynb) 
+The model successfully predicts RedBull type with high confidence:
+- **Prediction**: Sugar-free RedBull
+- **Confidence**: 89.9%
 
-Pattern2: AutoML
+![Prediction Example](image/prediction.png)
 
+## Design Patterns
 
-Pattern3: Function-based components \
-https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/lightweight_functions_component_io_kfp.ipynb
+This project showcases various ML pipeline patterns:
 
-Pattern4: Control Structure \
-https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/control_flow_kfp.ipynb
+1. **End-to-End Notebook**: [RedBull Classification Pipeline](https://github.com/kwdaisuke/MLOps/blob/main/transfer_learning_custom_pipeline.ipynb)
+2. **AutoML Pipeline**: Automated model training and deployment
+3. **Function-Based Components**: [Lightweight Functions Component I/O](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/lightweight_functions_component_io_kfp.ipynb)
+4. **Control Structure**: [Control Flow KFP](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/control_flow_kfp.ipynb)
+5. **Scheduled Execution**: [Pipeline Scheduling with Cloud Scheduler](https://cloud.google.com/vertex-ai/docs/pipelines/schedule-cloud-scheduler)
+6. **Data Management Pipeline**: Data preprocessing and validation workflows
+7. **TensorFlow Advanced Pipeline**: Custom TensorFlow training pipelines
+8. **Batch Prediction**: Large-scale batch inference processing
 
-Pattern5: Schedule pipeline execution \
-https://cloud.google.com/vertex-ai/docs/pipelines/schedule-cloud-scheduler
+## References
 
-Pattern6: Data Management pipeline \
+- [Google Cloud Pipeline Components - Model Train, Upload, Deploy](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/google_cloud_pipeline_components_model_train_upload_deploy.ipynb)
+- [Vertex AI Quickstart Lab](https://github.com/GoogleCloudPlatform/training-data-analyst/blob/master/self-paced-labs/vertex-ai/vertex-ai-qwikstart/lab_exercise.ipynb)
+- [Custom Image Classification Batch Processing](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/custom/sdk-custom-image-classification-batch.ipynb)
+- [Vertex AI Pipelines Documentation](https://cloud.google.com/vertex-ai/docs/pipelines/notebooks)
 
-Pattern7: Tensorflow Advanced pipeline \
+## Development Notes
 
-Pattern8: Batch Prediction
-
-
-
-## Reference
-- https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/pipelines/google_cloud_pipeline_components_model_train_upload_deploy.ipynb
-- https://github.com/GoogleCloudPlatform/training-data-analyst/blob/master/self-paced-labs/vertex-ai/vertex-ai-qwikstart/lab_exercise.ipynb 
-- https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/master/notebooks/official/custom/sdk-custom-image-classification-batch.ipynb
-- https://cloud.google.com/vertex-ai/docs/pipelines/notebooks
-
-
-## Memo
-
-- Importing dataset from vertex dataset is not necessary if using gcs 
-- Remove additional configuration(docker setup, yaml etc...) purely focusing on the pipeline components
+- Importing dataset from Vertex Dataset is not necessary when using GCS directly
+- Focus on pipeline components without additional Docker setup or YAML configurations
